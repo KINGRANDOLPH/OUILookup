@@ -1,11 +1,7 @@
 package org.alberto97.ouilookup.repository
 
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import okhttp3.Headers
-import org.alberto97.ouilookup.Extensions.readRawTextFile
-import org.alberto97.ouilookup.R
 import org.alberto97.ouilookup.datasource.IEEEApi
 import org.alberto97.ouilookup.db.Oui
 import org.alberto97.ouilookup.db.OuiDao
@@ -20,12 +16,10 @@ interface IOuiRepository {
     suspend fun get(text: String): List<Oui>
     fun getLastDbUpdate(): Flow<Long>
     suspend fun updateFromIEEE()
-    suspend fun updateFromCsv()
 }
 
 @Singleton
 class OuiRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val ouiCsvParser: IOuiCsvParser,
     private val api: IEEEApi,
     private val dao: OuiDao,
@@ -52,13 +46,6 @@ class OuiRepository @Inject constructor(
         val lastModified = getLastModifiedMillis(csvData.headers()) ?: System.currentTimeMillis()
         saveData(body)
         settings.setLastDbUpdate(lastModified)
-    }
-
-    override suspend fun updateFromCsv() {
-        val csvData = context.resources.readRawTextFile(R.raw.oui)
-        val csvMillis = context.resources.readRawTextFile(R.raw.oui_date_millis).toLong()
-        saveData(csvData)
-        settings.setLastDbUpdate(csvMillis)
     }
 
     private suspend fun saveData(csvData: String) {

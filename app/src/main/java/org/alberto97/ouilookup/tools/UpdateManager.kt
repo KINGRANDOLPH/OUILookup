@@ -47,10 +47,8 @@ class UpdateManager @Inject constructor(
     }
 
     override suspend fun shouldEnqueueUpdate(): OneTimeWorkRequest? {
-        // If db is empty it means it is still being seeded and must not be scheduled another update
-        val isEmpty = dao.isEmpty()
         val lastUpdateMillis = settings.getLastDbUpdate().first()
-        if (UpdatePolicyManager.isOutdated(isEmpty, lastUpdateMillis))
+        if (UpdatePolicyManager.isOutdated(lastUpdateMillis))
             return enqueueUpdate()
 
         return null
@@ -59,11 +57,7 @@ class UpdateManager @Inject constructor(
 }
 
 object UpdatePolicyManager {
-    fun isOutdated(emptyDb: Boolean, lastUpdateMillis: Long): Boolean {
-        return !emptyDb && needsUpdate(lastUpdateMillis)
-    }
-
-    fun needsUpdate(lastUpdateMillis: Long): Boolean {
+    fun isOutdated(lastUpdateMillis: Long): Boolean {
         // Don't update until at least a month has passed since the last data fetch
         val duration = (System.currentTimeMillis() - lastUpdateMillis).toDuration(DurationUnit.MILLISECONDS)
         return duration.inWholeDays >= 30

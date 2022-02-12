@@ -50,11 +50,11 @@ object DatabaseModule {
     @Provides
     fun provideAppDb(
         @ApplicationContext context: Context,
-        repository: Lazy<IOuiRepository>,
-        updateManager: Lazy<IUpdateManager>
+        settings: Lazy<ISettingsRepository>
     ): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, "app-db")
-            .addCallback(RoomCallback(repository, updateManager))
+            .createFromAsset("oui.db")
+            .addCallback(RoomCallback(context, settings))
             .build()
 
     @Singleton
